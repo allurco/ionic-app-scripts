@@ -53,7 +53,7 @@
     "rollup-plugin-node-builtins": "2.1.2",
     "rollup-plugin-node-globals": "1.1.0",
     "rollup-plugin-node-resolve": "3.0.0",
-    "rollup-pluginutils": "2.0.1",
+    "rollup-pluginutils": "2.1.0",
     "tiny-lr": "1.0.4",
     "tslint": "^5.5.0",
     "tslint-eslint-rules": "4.1.1",
