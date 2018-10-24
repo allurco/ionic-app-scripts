@@ -37,7 +37,7 @@
     "chokidar": "1.7.0",
     "clean-css": "3.4.27",
     "cross-spawn": "5.1.0",
-    "express": "4.15.3",
+    "express": "4.15.5",
     "fs-extra": "3.0.1",
     "glob": "7.1.1",
     "json-loader": "0.5.4",
