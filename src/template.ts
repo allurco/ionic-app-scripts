@@ -5,7 +5,6 @@ import * as Constants from './util/constants';
 import { BuildContext, BuildState, ChangedFile, File } from './util/interfaces';
 import { changeExtension, getStringPropertyValue } from './util/helpers';
 import { Logger } from './logger/logger';
-import { invalidateCache } from './rollup';
 
 
 
@@ -23,19 +22,15 @@ export function templateUpdate(changedFiles: ChangedFile[], context: BuildContex
       if (!updateCorrespondingJsFile(context, file.content, changedTemplateFile.filePath)) {
         throw new Error(`Failed to inline template ${changedTemplateFile.filePath}`);
       }
-      // find the corresponding bundle
+      // find the corresponding bundles
       for (const bundleFile of bundleFiles) {
         const newContent = replaceExistingJsTemplate(bundleFile.content, file.content, changedTemplateFile.filePath);
         if (newContent && newContent !== bundleFile.content) {
           context.fileCache.set(bundleFile.path, { path: bundleFile.path, content: newContent});
           writeFileSync(bundleFile.path, newContent);
-          break;
         }
       }
     }
-
-    // invaldiate any rollup bundles, if they're not using rollup no harm done
-    invalidateCache();
 
     // awesome, all good and template updated in the bundle file
     const logger = new Logger(`template update`);
@@ -180,7 +175,7 @@ export function getTemplateFormat(htmlFilePath: string, content: string) {
   content = content.replace(/\r|\n/g, '\\n');
   content = content.replace(/\'/g, '\\\'');
 
-  return `${getTemplatePrefix(htmlFilePath)}'${content}'${getTemplateSuffix(htmlFilePath)}`;
+  return `${getTemplatePrefix(htmlFilePath)}\'${content}\'${getTemplateSuffix(htmlFilePath)}`;
 }
 
 

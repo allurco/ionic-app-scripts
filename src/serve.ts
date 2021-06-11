@@ -1,3 +1,4 @@
+import * as express from 'express';
 import { BuildContext } from './util/interfaces';
 import { getConfigValue, hasConfigValue } from './util/config';
 import { BuildError } from './util/errors';
@@ -20,10 +21,23 @@ export function serve(context: BuildContext) {
   setContext(context);
 
   let config: ServeConfig;
+  let httpServer: express.Application;
   const host = getHttpServerHost(context);
   const notificationPort = getNotificationPort(context);
   const liveReloadServerPort = getLiveReloadServerPort(context);
   const hostPort = getHttpServerPort(context);
+
+  function finish() {
+    if (config) {
+      if (httpServer) {
+        httpServer.listen(config.httpPort, config.host, function() {
+          Logger.debug(`listening on ${config.httpPort}`);
+        });
+      }
+
+      onReady(config, context);
+    }
+  }
 
   return findClosestOpenPorts(host, [notificationPort, liveReloadServerPort, hostPort])
     .then(([notificationPortFound, liveReloadServerPortFound, hostPortFound]) => {
@@ -51,12 +65,12 @@ export function serve(context: BuildContext) {
 
       createNotificationServer(config);
       createLiveReloadServer(config);
-      createHttpServer(config);
+      httpServer = createHttpServer(config);
 
       return watch(context);
     })
     .then(() => {
-      onReady(config, context);
+      finish();
       return config;
     }, (err: BuildError) => {
       throw err;
@@ -65,14 +79,14 @@ export function serve(context: BuildContext) {
       if (err && err.isFatal) {
         throw err;
       } else {
-        onReady(config, context);
+        finish();
         return config;
       }
     });
 }
 
 function onReady(config: ServeConfig, context: BuildContext) {
-  if (config.launchBrowser || config.launchLab) {
+  if (config.launchBrowser) {
     const openOptions: string[] = [config.hostBaseUrl]
       .concat(launchLab(context) ? [IONIC_LAB_URL] : [])
       .concat(browserOption(context) ? [browserOption(context)] : [])

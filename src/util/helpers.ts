@@ -1,18 +1,18 @@
 import { randomBytes } from 'crypto';
 import { basename, dirname, extname, join } from 'path';
-import { createReadStream, createWriteStream, ensureDir, readdir, readFile, readFileSync, readJsonSync, remove, unlink, writeFile } from 'fs-extra';
+import { createReadStream, createWriteStream, ensureDir, readdir, readFile, readFileSync, readJson, readJsonSync, remove, unlink, writeFile } from 'fs-extra';
 import * as osName from 'os-name';
 
 import * as Constants from './constants';
 import { BuildError } from './errors';
-import { BuildContext, DeepLinkConfigEntry, File, WebpackStats } from './interfaces';
+import { BuildContext, DeepLinkConfigEntry, File, WebpackStats, SemverVersion } from './interfaces';
 import { Logger } from '../logger/logger';
 import { CAMEL_CASE_REGEXP } from './helpers/camel-case-regexp';
 import { CAMEL_CASE_UPPER_REGEXP } from './helpers/camel-case-upper-regexp';
 import { NON_WORD_REGEXP } from './helpers/non-word-regexp';
 
 let _context: BuildContext;
-let _parsedDeepLinkConfig: DeepLinkConfigEntry[];
+let _deepLinkConfigEntriesMap: Map<string, DeepLinkConfigEntry>;
 
 let cachedAppScriptsPackageJson: any;
 export function getAppScriptsPackageJson() {
@@ -134,6 +134,18 @@ export function readFileAsync(filePath: string) {
   });
 }
 
+export function readJsonAsync(filePath: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    readJson(filePath, {}, (err, object) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(object);
+    });
+  });
+}
+
+
 export function readAndCacheFile(filePath: string, purge: boolean = false): Promise<string> {
   const file = _context.fileCache.get(filePath);
   if (file && !purge) {
@@ -219,15 +231,6 @@ export function readDirAsync(pathToDir: string) {
   });
 }
 
-export function createFileObject(filePath: string): File {
-  const content = readFileSync(filePath).toString();
-  return {
-    content: content,
-    path: filePath,
-    timestamp: Date.now()
-  };
-}
-
 export function setContext(context: BuildContext) {
   _context = context;
 }
@@ -236,12 +239,12 @@ export function getContext() {
   return _context;
 }
 
-export function setParsedDeepLinkConfig(parsedDeepLinkConfig: DeepLinkConfigEntry[]) {
-  _parsedDeepLinkConfig = parsedDeepLinkConfig;
+export function setParsedDeepLinkConfig(map: Map<string, DeepLinkConfigEntry>) {
+  _deepLinkConfigEntriesMap = map;
 }
 
-export function getParsedDeepLinkConfig(): DeepLinkConfigEntry[] {
-  return _parsedDeepLinkConfig;
+export function getParsedDeepLinkConfig(): Map<string, DeepLinkConfigEntry> {
+  return _deepLinkConfigEntriesMap;
 }
 
 export function transformSrcPathToTmpPath(originalPath: string, context: BuildContext) {
@@ -289,17 +292,17 @@ export function generateRandomHexString(numCharacters: number) {
   return randomBytes(Math.ceil(numCharacters / 2)).toString('hex').slice(0, numCharacters);
 }
 
-export function getStringPropertyValue(propertyName: string) {
+export function getStringPropertyValue(propertyName: string): string {
   const result = process.env[propertyName];
   return result;
 }
 
-export function getIntPropertyValue(propertyName: string) {
+export function getIntPropertyValue(propertyName: string): number {
   const result = process.env[propertyName];
   return parseInt(result, 0);
 }
 
-export function getBooleanPropertyValue(propertyName: string) {
+export function getBooleanPropertyValue(propertyName: string): boolean {
   const result = process.env[propertyName];
   return result === 'true';
 }
@@ -352,7 +355,7 @@ export function processStatsImpl(webpackStats: WebpackStats) {
 }
 
 export function purgeWebpackPrefixFromPath(filePath: string) {
-  return filePath.replace(process.env[Constants.ENV_OPTIMIZATION_LOADER], '').replace(process.env[Constants.ENV_WEBPACK_LOADER], '').replace('!', '');
+  return filePath.replace(process.env[Constants.ENV_WEBPACK_LOADER], '').replace('!', '');
 }
 
 export function replaceAll(input: string, toReplace: string, replacement: string) {
@@ -410,6 +413,14 @@ export function sentenceCase(input: string) {
   return upperCaseFirst(noCase);
 }
 
+export function snakeCase(input: string) {
+  return removeCaseFromString(input, '_');
+}
+
+export function constantCase(input: string) {
+  return snakeCase(input).toUpperCase();
+}
+
 export function camelCase(input: string) {
   input = removeCaseFromString(input);
   input = input.replace(/ (?=\d)/g, '_');
@@ -448,18 +459,11 @@ export function removeCaseFromString(input: string, inReplacement?: string) {
   return modified.toLowerCase();
 }
 
-export function isSrcOrIonicOrIonicDeps(filePath: string) {
-  return (filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_AT_ANGULAR_DIR))
-    || filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR))
-    || filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_RXJS_DIR))
-    || filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_SRC_DIR)));
-}
-
-export function isIonicOrAngular(filePath: string) {
-  return (filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_AT_ANGULAR_DIR))
-    || filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR)));
-}
-
-export function isIonic(filePath: string) {
-  return filePath.startsWith(getStringPropertyValue(Constants.ENV_VAR_IONIC_ANGULAR_DIR));
+export function semverStringToObject(semverString: string): SemverVersion {
+  const versionArray = semverString.split('.');
+  return {
+    major: parseInt(versionArray[0], 10),
+    minor: parseInt(versionArray[1], 10),
+    patch: parseInt(versionArray[2], 10)
+  };
 }

@@ -26,7 +26,7 @@ export function createNotificationServer(config: ServeConfig) {
     if (options.hasOwnProperty('broadcast') && options.broadcast) {
       sendMethod = wss.broadcast;
     }
-    if (sendMethod && wss.clients.length > 0) {
+    if (sendMethod && wss.clients.size > 0) {
       let msg: any;
       while (msg = msgToClient.shift()) {
         try {
@@ -69,7 +69,7 @@ export function createNotificationServer(config: ServeConfig) {
   });
 
   // create web socket server
-  const wss = new WebSocketServer({ port: config.notificationPort });
+  const wss = new WebSocketServer({ host: config.host, port: config.notificationPort });
   wss.broadcast = function broadcast(data: any) {
     wss.clients.forEach(function each(client: any) {
       client.send(data);
@@ -79,12 +79,13 @@ export function createNotificationServer(config: ServeConfig) {
     // we've successfully connected
     wsServer = ws;
 
-    wsServer.on('message', (incomingMessage: string) => {
+    wsServer.on('message', (incomingMessage: any) => {
       // incoming message from the client
       try {
         printMessageFromClient(JSON.parse(incomingMessage));
       } catch (e) {
         Logger.error(`error opening ws message: ${incomingMessage}`);
+        Logger.error(e.stack ? e.stack : e);
       }
     });
 
@@ -112,22 +113,23 @@ export function createNotificationServer(config: ServeConfig) {
   function printConsole(msg: WsMessage) {
     const args = msg.data;
     args[0] = `console.${msg.type}: ${args[0]}`;
+    const log = args.join(' ');
 
     switch (msg.type) {
       case 'error':
-        Logger.error.apply(this, args);
+        Logger.error(log);
         break;
 
       case 'warn':
-        Logger.warn.apply(this, args);
+        Logger.warn(log);
         break;
 
       case 'debug':
-        Logger.debug.apply(this, args);
+        Logger.debug(log);
         break;
 
       default:
-        Logger.info.apply(this, args);
+        Logger.info(log);
         break;
       }
   }

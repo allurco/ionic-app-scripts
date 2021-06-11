@@ -1,4 +1,4 @@
-import * as Uglify from 'uglify-js';
+import * as Uglify from 'uglify-es';
 
 import { Logger } from './logger/logger';
 import { fillConfigDefaults, generateContext, getUserConfigFile } from './util/config';
@@ -12,7 +12,7 @@ import { runWorker } from './worker-client';
 export function uglifyjs(context: BuildContext, configFile?: string) {
   configFile = getUserConfigFile(context, taskInfo, configFile);
 
-  const logger = new Logger('uglifyjs');
+  const logger = new Logger('uglify');
 
   return runWorker('uglifyjs', 'uglifyjsWorker', context, configFile)
     .then(() => {
@@ -47,14 +47,13 @@ export async function uglifyjsWorkerImpl(context: BuildContext, uglifyJsConfig: 
 }
 
 async function runUglifyInternal(sourceFilePath: string, destFilePath: string, sourceMapPath: string, destMapPath: string, configObject: any): Promise<any> {
-  const sourceFileContentPromise = readFileAsync(sourceFilePath);
   const [sourceFileContent, sourceMapContent] = await Promise.all([readFileAsync(sourceFilePath), readFileAsync(sourceMapPath)]);
   const uglifyConfig = Object.assign({}, configObject, {
     sourceMap: {
         content: sourceMapContent
     }
   });
-  const result = Uglify.minify(sourceFileContent, uglifyConfig);
+  const result = Uglify.minify(sourceFileContent, uglifyConfig) as any;
   if (result.error) {
     throw new BuildError(`Uglify failed: ${result.error.message}`);
   }

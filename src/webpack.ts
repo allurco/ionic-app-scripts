@@ -93,6 +93,25 @@ function webpackBuildComplete(stats: any, context: BuildContext, webpackConfig: 
     Logger.debug('Webpack Dependency Map End');
   }
 
+  // set the module files used in this bundle
+  // this reference can be used elsewhere in the build (sass)
+  const files: string[] = [];
+  stats.compilation.modules.forEach((webpackModule: any) => {
+    if (webpackModule.resource) {
+      files.push(webpackModule.resource);
+    } else if (webpackModule.context) {
+      files.push(webpackModule.context);
+    } else if (webpackModule.fileDependencies) {
+      webpackModule.fileDependencies.forEach((filePath: string) => {
+        files.push(filePath);
+      });
+    }
+  });
+
+  const trimmedFiles = files.filter(file => file && file.length > 0);
+
+  context.moduleFiles = trimmedFiles;
+
   return setBundledFiles(context);
 }
 
@@ -121,7 +140,7 @@ export function runWebpackFullBuild(config: WebpackConfig) {
         }
       }
     };
-    const compiler = webpackApi(config);
+    const compiler = webpackApi(config as any);
     compiler.run(callback);
   });
 }
@@ -176,7 +195,7 @@ function handleWebpackBuildSuccess(resolve: Function, reject: Function, stats: a
 
 function startWebpackWatch(context: BuildContext, config: WebpackConfig) {
   Logger.debug('Starting Webpack watch');
-  const compiler = webpackApi(config);
+  const compiler = webpackApi(config as any);
   context.webpackWatch = compiler.watch({}, (err: Error, stats: any) => {
     if (err) {
       eventEmitter.emit(INCREMENTAL_BUILD_FAILED, err);
@@ -188,12 +207,20 @@ function startWebpackWatch(context: BuildContext, config: WebpackConfig) {
 
 export function getWebpackConfig(context: BuildContext, configFile: string): WebpackConfig {
   configFile = getUserConfigFile(context, taskInfo, configFile);
-
-  let webpackConfig: WebpackConfig = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
+  const webpackConfigDictionary = fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
+  const webpackConfig: WebpackConfig = getWebpackConfigFromDictionary(context, webpackConfigDictionary);
   webpackConfig.entry = replacePathVars(context, webpackConfig.entry);
   webpackConfig.output.path = replacePathVars(context, webpackConfig.output.path);
 
   return webpackConfig;
+}
+
+export function getWebpackConfigFromDictionary(context: BuildContext, webpackConfigDictionary: any): WebpackConfig {
+  // todo, support more ENV here
+  if (context.runAot) {
+    return webpackConfigDictionary['prod'];
+  }
+  return webpackConfigDictionary['dev'];
 }
 
 

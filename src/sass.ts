@@ -108,12 +108,14 @@ function generateSassData(context: BuildContext, sassConfig: SassConfig) {
    */
 
   const moduleDirectories: string[] = [];
-  context.moduleFiles.forEach(moduleFile => {
-    const moduleDirectory = dirname(moduleFile);
-    if (moduleDirectories.indexOf(moduleDirectory) < 0) {
-      moduleDirectories.push(moduleDirectory);
-    }
-  });
+  if (context.moduleFiles) {
+    context.moduleFiles.forEach(moduleFile => {
+      const moduleDirectory = dirname(moduleFile);
+      if (moduleDirectories.indexOf(moduleDirectory) < 0) {
+        moduleDirectories.push(moduleDirectory);
+      }
+    });
+  }
 
   Logger.debug(`sass moduleDirectories: ${moduleDirectories.length}`);
 
@@ -279,7 +281,8 @@ function renderSassSuccess(context: BuildContext, sassResult: Result, sassConfig
 
     const postcssOptions: any = {
       to: basename(sassConfig.outFile),
-      map: autoPrefixerMapOptions
+      map: autoPrefixerMapOptions,
+      from: void 0
     };
 
     Logger.debug(`sass, start postcss/autoprefixer`);

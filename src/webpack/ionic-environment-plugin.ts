@@ -1,15 +1,15 @@
 import { join } from 'path';
 import * as Constants from '../util/constants';
-import { getParsedDeepLinkConfig, getStringPropertyValue } from '../util/helpers';
+import { changeExtension, getParsedDeepLinkConfig, getStringPropertyValue } from '../util/helpers';
 import { BuildContext , DeepLinkConfigEntry} from '../util/interfaces';
 import { Logger } from '../logger/logger';
 import { getInstance } from '../util/hybrid-file-system-factory';
 import { WatchMemorySystem } from './watch-memory-system';
 
-import * as ContextElementDependency from 'webpack/lib/dependencies/ContextElementDependency';
+const ContextElementDependency = require('webpack/lib/dependencies/ContextElementDependency');
 
 export class IonicEnvironmentPlugin {
-  constructor(private context: BuildContext) {
+  constructor(private context: BuildContext, private writeToDisk: boolean) {
   }
 
   apply(compiler: any) {
@@ -48,7 +48,7 @@ export class IonicEnvironmentPlugin {
 
     compiler.plugin('environment', (otherCompiler: any, callback: Function) => {
       Logger.debug('[IonicEnvironmentPlugin] apply: creating environment plugin');
-      const hybridFileSystem = getInstance();
+      const hybridFileSystem = getInstance(this.writeToDisk);
       hybridFileSystem.setInputFileSystem(compiler.inputFileSystem);
       hybridFileSystem.setOutputFileSystem(compiler.outputFileSystem);
       compiler.inputFileSystem = hybridFileSystem;
@@ -105,10 +105,10 @@ export class IonicEnvironmentPlugin {
 }
 
 
-export function convertDeepLinkConfigToWebpackFormat(parsedDeepLinkConfigs: DeepLinkConfigEntry[]) {
+export function convertDeepLinkConfigToWebpackFormat(parsedDeepLinkConfigs: Map<string, DeepLinkConfigEntry>) {
   const dictionary: { [index: string]: string} = { };
   if (!parsedDeepLinkConfigs) {
-    parsedDeepLinkConfigs = [];
+    parsedDeepLinkConfigs = new Map<string, DeepLinkConfigEntry>();
   }
   parsedDeepLinkConfigs.forEach(parsedDeepLinkConfig => {
     if (parsedDeepLinkConfig.userlandModulePath && parsedDeepLinkConfig.absolutePath) {
