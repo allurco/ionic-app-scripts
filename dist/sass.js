@@ -95,14 +95,12 @@ function generateSassData(context, sassConfig) {
      *    css specificity.
      */
     var moduleDirectories = [];
-    if (context.moduleFiles) {
-        context.moduleFiles.forEach(function (moduleFile) {
-            var moduleDirectory = path_1.dirname(moduleFile);
-            if (moduleDirectories.indexOf(moduleDirectory) < 0) {
-                moduleDirectories.push(moduleDirectory);
-            }
-        });
-    }
+    context.moduleFiles.forEach(function (moduleFile) {
+        var moduleDirectory = path_1.dirname(moduleFile);
+        if (moduleDirectories.indexOf(moduleDirectory) < 0) {
+            moduleDirectories.push(moduleDirectory);
+        }
+    });
     logger_1.Logger.debug("sass moduleDirectories: " + moduleDirectories.length);
     // gather a list of all the sass variable files that should be used
     // these variable files will be the first imports
@@ -232,8 +230,7 @@ function renderSassSuccess(context, sassResult, sassConfig) {
         }
         var postcssOptions = {
             to: path_1.basename(sassConfig.outFile),
-            map: autoPrefixerMapOptions,
-            from: void 0
+            map: autoPrefixerMapOptions
         };
         logger_1.Logger.debug("sass, start postcss/autoprefixer");
         var postCssPlugins = [autoprefixer(sassConfig.autoprefixer)];

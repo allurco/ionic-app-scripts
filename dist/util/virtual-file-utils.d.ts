@@ -1,4 +1,5 @@
-export declare class VirtualStats {
+import { Stats } from 'fs';
+export declare class VirtualStats implements Stats {
     protected _path: string;
     protected _ctime: Date;
     protected _mtime: Date;
@@ -7,8 +8,8 @@ export declare class VirtualStats {
     protected _dev: number;
     protected _ino: number;
     protected _mode: number;
-    protected _uid: number;
-    protected _gid: number;
+    protected _uid: string | number;
+    protected _gid: string | number;
     constructor(_path: string);
     isFile(): boolean;
     isDirectory(): boolean;
@@ -21,8 +22,8 @@ export declare class VirtualStats {
     readonly ino: number;
     readonly mode: number;
     readonly nlink: number;
-    readonly uid: number;
-    readonly gid: number;
+    readonly uid: string | number;
+    readonly gid: string | number;
     readonly rdev: number;
     readonly size: number;
     readonly blksize: number;

@@ -7,11 +7,9 @@ export declare class HybridFileSystem implements FileSystem, VirtualFileSystem {
     private directoryStats;
     private inputFileSystem;
     private outputFileSystem;
-    private writeToDisk;
     constructor(fileCache: FileCache);
     setInputFileSystem(fs: FileSystem): void;
     setOutputFileSystem(fs: FileSystem): void;
-    setWriteToDisk(write: boolean): void;
     isSync(): boolean;
     stat(path: string, callback: Function): any;
     readdir(path: string, callback: Function): any;

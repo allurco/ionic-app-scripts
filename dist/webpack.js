@@ -82,24 +82,6 @@ function webpackBuildComplete(stats, context, webpackConfig) {
         helpers_1.printDependencyMap(dependencyMap);
         logger_1.Logger.debug('Webpack Dependency Map End');
     }
-    // set the module files used in this bundle
-    // this reference can be used elsewhere in the build (sass)
-    var files = [];
-    stats.compilation.modules.forEach(function (webpackModule) {
-        if (webpackModule.resource) {
-            files.push(webpackModule.resource);
-        }
-        else if (webpackModule.context) {
-            files.push(webpackModule.context);
-        }
-        else if (webpackModule.fileDependencies) {
-            webpackModule.fileDependencies.forEach(function (filePath) {
-                files.push(filePath);
-            });
-        }
-    });
-    var trimmedFiles = files.filter(function (file) { return file && file.length > 0; });
-    context.moduleFiles = trimmedFiles;
     return setBundledFiles(context);
 }
 function setBundledFiles(context) {
@@ -189,21 +171,12 @@ function startWebpackWatch(context, config) {
 }
 function getWebpackConfig(context, configFile) {
     configFile = config_1.getUserConfigFile(context, taskInfo, configFile);
-    var webpackConfigDictionary = config_1.fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
-    var webpackConfig = getWebpackConfigFromDictionary(context, webpackConfigDictionary);
+    var webpackConfig = config_1.fillConfigDefaults(configFile, taskInfo.defaultConfigFile);
     webpackConfig.entry = config_1.replacePathVars(context, webpackConfig.entry);
     webpackConfig.output.path = config_1.replacePathVars(context, webpackConfig.output.path);
     return webpackConfig;
 }
 exports.getWebpackConfig = getWebpackConfig;
-function getWebpackConfigFromDictionary(context, webpackConfigDictionary) {
-    // todo, support more ENV here
-    if (context.runAot) {
-        return webpackConfigDictionary['prod'];
-    }
-    return webpackConfigDictionary['dev'];
-}
-exports.getWebpackConfigFromDictionary = getWebpackConfigFromDictionary;
 function getOutputDest(context) {
     var webpackConfig = getWebpackConfig(context, null);
     return path_1.join(webpackConfig.output.path, webpackConfig.output.filename);

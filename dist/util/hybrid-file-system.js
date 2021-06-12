@@ -14,9 +14,6 @@ var HybridFileSystem = (function () {
     HybridFileSystem.prototype.setOutputFileSystem = function (fs) {
         this.outputFileSystem = fs;
     };
-    HybridFileSystem.prototype.setWriteToDisk = function (write) {
-        this.writeToDisk = write;
-    };
     HybridFileSystem.prototype.isSync = function () {
         return this.inputFileSystem.isSync();
     };
@@ -94,28 +91,16 @@ var HybridFileSystem = (function () {
         return this.directoryStats;
     };
     HybridFileSystem.prototype.mkdirp = function (filePath, callback) {
-        if (this.writeToDisk) {
-            return this.outputFileSystem.mkdirp(filePath, callback);
-        }
-        callback();
+        return this.outputFileSystem.mkdirp(filePath, callback);
     };
     HybridFileSystem.prototype.mkdir = function (filePath, callback) {
-        if (this.writeToDisk) {
-            return this.outputFileSystem.mkdir(filePath, callback);
-        }
-        callback();
+        return this.outputFileSystem.mkdir(filePath, callback);
     };
     HybridFileSystem.prototype.rmdir = function (filePath, callback) {
-        if (this.writeToDisk) {
-            return this.outputFileSystem.rmdir(filePath, callback);
-        }
-        callback();
+        return this.outputFileSystem.rmdir(filePath, callback);
     };
     HybridFileSystem.prototype.unlink = function (filePath, callback) {
-        if (this.writeToDisk) {
-            return this.outputFileSystem.unlink(filePath, callback);
-        }
-        callback();
+        return this.outputFileSystem.unlink(filePath, callback);
     };
     HybridFileSystem.prototype.join = function (dirPath, fileName) {
         return path_1.join(dirPath, fileName);
@@ -123,10 +108,7 @@ var HybridFileSystem = (function () {
     HybridFileSystem.prototype.writeFile = function (filePath, fileContent, callback) {
         var stringContent = fileContent.toString();
         this.addVirtualFile(filePath, stringContent);
-        if (this.writeToDisk) {
-            return this.outputFileSystem.writeFile(filePath, fileContent, callback);
-        }
-        callback();
+        return this.outputFileSystem.writeFile(filePath, fileContent, callback);
     };
     return HybridFileSystem;
 }());

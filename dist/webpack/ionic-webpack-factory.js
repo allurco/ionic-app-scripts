@@ -7,7 +7,7 @@ var source_mapper_1 = require("./source-mapper");
 var helpers_1 = require("../util/helpers");
 function getIonicEnvironmentPlugin() {
     var context = helpers_1.getContext();
-    return new ionic_environment_plugin_1.IonicEnvironmentPlugin(context, true);
+    return new ionic_environment_plugin_1.IonicEnvironmentPlugin(context);
 }
 exports.getIonicEnvironmentPlugin = getIonicEnvironmentPlugin;
 function getSourceMapperFunction() {

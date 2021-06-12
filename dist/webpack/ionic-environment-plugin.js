@@ -6,11 +6,10 @@ var helpers_1 = require("../util/helpers");
 var logger_1 = require("../logger/logger");
 var hybrid_file_system_factory_1 = require("../util/hybrid-file-system-factory");
 var watch_memory_system_1 = require("./watch-memory-system");
-var ContextElementDependency = require('webpack/lib/dependencies/ContextElementDependency');
+var ContextElementDependency = require("webpack/lib/dependencies/ContextElementDependency");
 var IonicEnvironmentPlugin = (function () {
-    function IonicEnvironmentPlugin(context, writeToDisk) {
+    function IonicEnvironmentPlugin(context) {
         this.context = context;
-        this.writeToDisk = writeToDisk;
     }
     IonicEnvironmentPlugin.prototype.apply = function (compiler) {
         var _this = this;
@@ -45,7 +44,7 @@ var IonicEnvironmentPlugin = (function () {
         });
         compiler.plugin('environment', function (otherCompiler, callback) {
             logger_1.Logger.debug('[IonicEnvironmentPlugin] apply: creating environment plugin');
-            var hybridFileSystem = hybrid_file_system_factory_1.getInstance(_this.writeToDisk);
+            var hybridFileSystem = hybrid_file_system_factory_1.getInstance();
             hybridFileSystem.setInputFileSystem(compiler.inputFileSystem);
             hybridFileSystem.setOutputFileSystem(compiler.outputFileSystem);
             compiler.inputFileSystem = hybridFileSystem;
@@ -100,7 +99,7 @@ exports.IonicEnvironmentPlugin = IonicEnvironmentPlugin;
 function convertDeepLinkConfigToWebpackFormat(parsedDeepLinkConfigs) {
     var dictionary = {};
     if (!parsedDeepLinkConfigs) {
-        parsedDeepLinkConfigs = new Map();
+        parsedDeepLinkConfigs = [];
     }
     parsedDeepLinkConfigs.forEach(function (parsedDeepLinkConfig) {
         if (parsedDeepLinkConfig.userlandModulePath && parsedDeepLinkConfig.absolutePath) {

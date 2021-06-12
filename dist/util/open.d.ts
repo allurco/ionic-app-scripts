@@ -1,4 +1,3 @@
-import * as childProcess from 'child_process';
 /**
  * open a file or uri using the default application for the file type.
  *
@@ -10,4 +9,4 @@ import * as childProcess from 'child_process';
  *      an error object that contains a property 'code' with the exit
  *      code of the process.
  */
-export default function (target: string, appName: string | Function, callback?: any): childProcess.ChildProcess;
+export default function (target: string, appName: string | Function, callback?: Function): any;
